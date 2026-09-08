@@ -90,6 +90,8 @@ More detail: [Engineering Decisions](docs/ENGINEERING_DECISIONS.md)
 
 This public repo includes simplified, sanitized examples of patterns used in the real system. They are not production source files and intentionally omit production endpoints, identifiers, credentials, and proprietary workflow details.
 
+- [Sanitized n8n lead-intake workflow](examples/n8n/sanitized-lead-intake.example.json)
+- [How the public n8n example differs from production](examples/n8n/README.md)
 - [Secure automation gateway example](examples/secure-automation-gateway.example.ts)
 - [Tenant isolation example](examples/tenant-isolation.example.sql)
 - [Idempotency example](examples/idempotency-pattern.example.ts)
@@ -111,7 +113,7 @@ flowchart TD
     D --> H[Execution telemetry]
 ```
 
-The production n8n workflow JSON files are private. I keep the public repository focused on architecture, decisions, and selected implementation patterns rather than publishing importable production workflows.
+The public repository includes one intentionally sanitized workflow export for inspection. The actual production n8n workflows remain private because they contain operational implementation details that are not necessary for evaluating the project.
 
 ## Reliability and security work
 
@@ -151,6 +153,7 @@ The parts I care about most are:
 - Architecture documentation
 - Engineering decisions
 - Sanitized code examples
+- One sanitized n8n workflow example
 - Product and technical overview
 - Non-sensitive diagrams
 - Portfolio evidence
