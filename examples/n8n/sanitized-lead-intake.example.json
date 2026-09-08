@@ -1,0 +1,115 @@
+{
+  "name": "Smart CRM - Sanitized Lead Intake Example",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "demo-lead-intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "demo-webhook",
+      "name": "Demo Lead Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [260, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json.body ?? $json;\n\nconst name = typeof input.name === 'string' ? input.name.trim() : '';\nconst email = typeof input.email === 'string' ? input.email.trim() : '';\nconst message = typeof input.message === 'string' ? input.message.trim() : '';\n\nif (!name || !email.includes('@') || !message) {\n  throw new Error('name, valid email, and message are required');\n}\n\nreturn [{\n  json: {\n    source: 'public-showcase-demo',\n    lead: { name, email, message },\n    classification_request: {\n      allowed_output_fields: ['category', 'intent', 'summary'],\n      note: 'In production this step is sent to the AI classification layer.'\n    }\n  }\n}];"
+      },
+      "id": "validate-input",
+      "name": "Validate Trusted Source Fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Demo-only deterministic classification.\n// The production project uses an AI classification workflow, which is private.\nconst lead = $json.lead;\nconst normalized = lead.message.toLowerCase();\n\nconst category = normalized.includes('urgent') ? 'Hot' : 'Warm';\nconst intent = normalized.includes('demo') ? 'Product demo' : 'General inquiry';\n\nreturn [{\n  json: {\n    ...$json,\n    ai_result: {\n      category,\n      intent,\n      summary: `Lead from ${lead.name} passed the sanitized intake example.`\n    }\n  }\n}];"
+      },
+      "id": "demo-classifier",
+      "name": "Demo Classification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge authoritative source fields with only the classification fields\n// this workflow is allowed to produce.\nreturn [{\n  json: {\n    lead: $json.lead,\n    classification: {\n      category: $json.ai_result.category,\n      intent: $json.ai_result.intent,\n      summary: $json.ai_result.summary\n    },\n    persisted: false,\n    note: 'No database write is included in this public example.'\n  }\n}];"
+      },
+      "id": "merge-result",
+      "name": "Merge Source + Classification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [980, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [1220, 300]
+    }
+  ],
+  "connections": {
+    "Demo Lead Intake": {
+      "main": [
+        [
+          {
+            "node": "Validate Trusted Source Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Trusted Source Fields": {
+      "main": [
+        [
+          {
+            "node": "Demo Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo Classification": {
+      "main": [
+        [
+          {
+            "node": "Merge Source + Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Source + Classification": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "00000000-0000-0000-0000-000000000000",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "publicShowcase": true,
+    "sanitized": true
+  },
+  "tags": []
+}
